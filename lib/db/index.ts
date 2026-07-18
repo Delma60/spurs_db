@@ -10,9 +10,12 @@ const client =
   postgres(process.env.DATABASE_SYNC_URL!, {
     ssl: "require",
     max: 5,
+    prepare: false, // safest for serverless/pooled Postgres (Neon)
   });
 
 if (process.env.NODE_ENV !== "production") globalForDb._pg = client;
 
 export const db = drizzle(client, { schema });
+/** Raw postgres.js client — for dynamic, per-project DDL/DML (Database service). */
+export const sql = client;
 export * from "./schema";

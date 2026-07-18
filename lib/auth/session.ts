@@ -2,7 +2,7 @@
 // Works in both the Node runtime (server components, route handlers) and the
 // Edge runtime (middleware).
 import { SignJWT, jwtVerify } from "jose";
-import type { SpursUser } from "./spurs-oidc";
+import type { SpursUser } from "./oidc";
 
 export const SESSION_COOKIE = "spurs_baas_session";
 

@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, verifySession } from "@/lib/session";
+import { SESSION_COOKIE, verifySession } from "@/lib/auth/session";
 
 // Gate the whole console behind a valid Spurs session. /auth/* stays public.
 // (Next 16 renamed the `middleware` convention to `proxy`.)
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/auth/")) {
+  // Public paths: login, SSO handlers, and the API-key-authenticated public API.
+  if (pathname === "/login" || pathname.startsWith("/auth/") || pathname.startsWith("/api/v1/")) {
     return NextResponse.next();
   }
 
   const session = await verifySession(request.cookies.get(SESSION_COOKIE)?.value);
   if (!session) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();

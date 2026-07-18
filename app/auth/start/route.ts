@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildAuthorizeUrl, pkceChallenge, randomToken } from "@/lib/spurs-oidc";
+import { buildAuthorizeUrl, pkceChallenge, randomToken } from "@/lib/auth/oidc";
 
 // Kick off the Spurs SSO login: generate state + PKCE, stash them, redirect.
 export async function GET() {

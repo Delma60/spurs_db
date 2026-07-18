@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCode, fetchUserInfo } from "@/lib/spurs-oidc";
-import { createSession, SESSION_COOKIE } from "@/lib/session";
+import { exchangeCode, fetchUserInfo } from "@/lib/auth/oidc";
+import { createSession, SESSION_COOKIE } from "@/lib/auth/session";
 import { db, users } from "@/lib/db";
 
 // Spurs redirects the user back here with ?code&state. Exchange it and sign in.
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const appUrl = process.env.APP_URL ?? url.origin;
   const fail = (reason: string) =>
-    NextResponse.redirect(`${appUrl}/auth/login?error=${encodeURIComponent(reason)}`);
+    NextResponse.redirect(`${appUrl}/login?error=${encodeURIComponent(reason)}`);
 
   if (url.searchParams.get("error")) return fail(url.searchParams.get("error")!);
 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     const session = await createSession(user);
 
-    const res = NextResponse.redirect(`${appUrl}/`);
+    const res = NextResponse.redirect(`${appUrl}/u/${user.sub}`);
     res.cookies.set(SESSION_COOKIE, session, {
       httpOnly: true,
       sameSite: "lax",

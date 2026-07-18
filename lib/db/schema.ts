@@ -7,7 +7,9 @@ import {
   uuid,
   timestamp,
   boolean,
+  jsonb,
   index,
+  uniqueIndex,
   primaryKey,
 } from "drizzle-orm/pg-core";
 
@@ -59,5 +61,68 @@ export const apiKeys = spurs.table("api_keys", {
   revoked: boolean("revoked").notNull().default(false),
 });
 
+/** Logical storage buckets a project defines (objects live in one physical B2 bucket, keyed by prefix). */
+export const storageBuckets = spurs.table(
+  "storage_buckets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    public: boolean("public").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("storage_buckets_project_name_idx").on(t.projectId, t.name)],
+);
+
+/** A project's own end users (auth-as-a-service). Passwords live here in the
+ * control plane, NOT in the tenant's queryable schema. */
+export const endUsers = spurs.table(
+  "end_users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    lastSignInAt: timestamp("last_sign_in_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("end_users_project_email_idx").on(t.projectId, t.email)],
+);
+
+/** Serverless functions a project defines. */
+export const functions = spurs.table(
+  "functions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    code: text("code").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("functions_project_name_idx").on(t.projectId, t.name)],
+);
+
+/** Per-project auth configuration — which sign-in providers are enabled. */
+export const authSettings = spurs.table("auth_settings", {
+  projectId: uuid("project_id").primaryKey().references(() => projects.id, { onDelete: "cascade" }),
+  providers: jsonb("providers").notNull().default({}), // { password: true, spurs: true, ... }
+  allowSignups: boolean("allow_signups").notNull().default(true),
+  smtp: jsonb("smtp").notNull().default({}), // { host, port, username, password, from, secure }
+  templates: jsonb("templates").notNull().default({}), // { verify:{subject,body}, reset:{subject,body} }
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** One JSON tree per project — the Realtime Database root. */
+export const realtimeData = spurs.table("realtime_data", {
+  projectId: uuid("project_id").primaryKey().references(() => projects.id, { onDelete: "cascade" }),
+  data: jsonb("data").notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
+export type StorageBucket = typeof storageBuckets.$inferSelect;
+export type EndUser = typeof endUsers.$inferSelect;
+export type FunctionRow = typeof functions.$inferSelect;
+export type AuthSettingsRow = typeof authSettings.$inferSelect;

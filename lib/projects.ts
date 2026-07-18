@@ -25,10 +25,14 @@ export async function getProject(userId: string, id: string): Promise<Project | 
   return p;
 }
 
-export async function createProject(userId: string, name: string): Promise<Project> {
+export async function createProject(
+  userId: string,
+  name: string,
+  region = "us-east",
+): Promise<Project> {
   const [project] = await db
     .insert(projects)
-    .values({ ownerId: userId, name: name.trim(), slug: slugify(name) })
+    .values({ ownerId: userId, name: name.trim(), slug: slugify(name), region })
     .returning();
 
   await db.insert(projectMembers).values({
