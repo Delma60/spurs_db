@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCode, fetchUserInfo } from "@/lib/spurs-oidc";
 import { createSession, SESSION_COOKIE } from "@/lib/session";
+import { db, users } from "@/lib/db";
 
 // Spurs redirects the user back here with ?code&state. Exchange it and sign in.
 export async function GET(request: NextRequest) {
@@ -23,6 +24,16 @@ export async function GET(request: NextRequest) {
   try {
     const tokens = await exchangeCode(code, verifier);
     const user = await fetchUserInfo(tokens.access_token);
+
+    // Mirror the Spurs user into our control plane so projects can reference them.
+    await db
+      .insert(users)
+      .values({ id: user.sub, name: user.name ?? null, email: user.email ?? null })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: { name: user.name ?? null, email: user.email ?? null },
+      });
+
     const session = await createSession(user);
 
     const res = NextResponse.redirect(`${appUrl}/`);
