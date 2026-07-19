@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid, Database, FileJson, HardDrive, Zap, KeyRound,
-  FunctionSquare, Settings, type LucideIcon,
+  FunctionSquare, CreditCard, Settings, type LucideIcon,
 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 
 const ICONS: Record<string, LucideIcon> = {
-  LayoutGrid, Database, FileJson, HardDrive, Zap, KeyRound, FunctionSquare, Settings,
+  LayoutGrid, Database, FileJson, HardDrive, Zap, KeyRound, FunctionSquare, CreditCard, Settings,
 };
 
 export default function Sidebar({
@@ -25,6 +25,7 @@ export default function Sidebar({
   const items = [
     { slug: "overview", name: "Overview", icon: "LayoutGrid" },
     ...SERVICES.map((s) => ({ slug: s.slug, name: s.name, icon: s.icon })),
+    { slug: "billing", name: "Billing", icon: "CreditCard" },
     { slug: "settings", name: "Settings", icon: "Settings" },
   ];
 

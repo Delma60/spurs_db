@@ -137,12 +137,12 @@ lib/  db/ (drizzle schema + client), mongo, redis, s3, spurs-oidc ✅, session �
 - [x] **Per-project end-user auth** (auth-as-a-service) — `end_users` table, scrypt hashes, end-user JWTs; public `POST /api/v1/auth/{signup,signin}` + `GET /api/v1/auth/user`; console Users tab
 - [x] **Realtime Database** (reshaped from the change-feed per user) — Firebase-style JSON tree; `lib/realtimedb.ts` (one jsonb per project, path get/set/delete + `pg_notify`), live SSE, tree editor UI, public REST `GET/PUT/DELETE /api/v1/rtdb/<path>`
 
-### Phase 7 — Billing, superadmin, docs, notifications
-- [ ] Billing: Paystack/Stripe/Flutterwave webhooks + plans (`BillingPageClient`)
-- [ ] Superadmin: users, projects, staff, orgs, audit, flags
-- [ ] Notifications (`api/internal/notifications`) + read state
-- [ ] Docs site (quickstarts, per-service reference)
-- [ ] Settings: General, Members, DangerZone
+### Phase 7 — Billing, docs, notifications, settings
+- [x] **Billing** — done via **Spurs Pay** (not direct Paystack/Stripe/Flutterwave webhooks): plans (Free/Pro/Scale), `spurs.subscriptions`+`spurs.invoices`, checkout → Spurs Pay hosted checkout → verify → activate. `lib/billing/*`, `(section_b)/billing/*`, Billing in Sidebar. Verified E2E. Processor stays hidden (Spurs Pay abstracts it).
+- ~~Superadmin~~ — moved out of baas; will live on the **`admin` subdomain** later.
+- [x] Notifications (`api/internal/notifications`) + read state — user-scoped, TopNav bell
+- [x] Docs site (quickstarts, per-service reference) — public `/docs`
+- [x] Settings: General (rename), Members (invite/role/remove), Danger Zone (delete)
 
 ### Phase 8 — Hardening
 - [ ] Quotas + rate limiting (Redis)

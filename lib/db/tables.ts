@@ -189,6 +189,51 @@ export async function deleteRow(projectId: string, table: string, id: string): P
   await sql.unsafe(`delete from "${s}"."${table}" where id = $1`, [id] as never[]);
 }
 
+export async function updateRow(
+  projectId: string,
+  table: string,
+  id: string,
+  data: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  const s = schemaName(projectId);
+  assertIdent(table);
+
+  const cols = Object.keys(data).filter((k) => k !== "id" && k !== "created_at");
+  cols.forEach(assertIdent);
+  if (cols.length === 0) throw new Error("No fields to update.");
+
+  const set = cols.map((c, i) => `"${c}" = $${i + 1}`).join(", ");
+  const values = [...cols.map((c) => data[c]), id];
+  const [row] = await sql.unsafe(
+    `update "${s}"."${table}" set ${set} where id = $${cols.length + 1} returning *`,
+    values as never[],
+  );
+  return (row as Record<string, unknown>) ?? null;
+}
+
+/** List rows with optional equality filters (each key must be a real column). */
+export async function queryRows(
+  projectId: string,
+  table: string,
+  filters: Record<string, string>,
+  limit = 100,
+): Promise<Record<string, unknown>[]> {
+  const s = schemaName(projectId);
+  assertIdent(table);
+  const lim = Math.min(Math.max(1, Math.floor(limit)), 500);
+
+  const cols = Object.keys(filters);
+  if (cols.length === 0) return listRows(projectId, table, lim);
+  cols.forEach(assertIdent);
+
+  const where = cols.map((c, i) => `"${c}" = $${i + 1}`).join(" and ");
+  const values = cols.map((c) => filters[c]);
+  return sql.unsafe(
+    `select * from "${s}"."${table}" where ${where} order by created_at desc limit ${lim}`,
+    values as never[],
+  );
+}
+
 // ---- Column alter ----
 
 export async function addColumn(projectId: string, table: string, col: ColumnDef): Promise<void> {

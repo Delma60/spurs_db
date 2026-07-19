@@ -120,6 +120,53 @@ export const realtimeData = spurs.table("realtime_data", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** A project's subscription — which plan it's on. One row per project. */
+export const subscriptions = spurs.table("subscriptions", {
+  projectId: uuid("project_id").primaryKey().references(() => projects.id, { onDelete: "cascade" }),
+  plan: text("plan").notNull().default("free"), // free | pro | scale
+  status: text("status").notNull().default("active"), // active | past_due
+  renewsAt: timestamp("renews_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** A billing invoice — a charge for a plan, paid through Spurs Pay. */
+export const invoices = spurs.table(
+  "invoices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    plan: text("plan").notNull(),
+    amount: text("amount").notNull(),                 // minor units, stored as text to avoid int overflow surprises
+    currency: text("currency").notNull().default("NGN"),
+    status: text("status").notNull().default("pending"), // pending | paid | failed
+    payReference: text("pay_reference").notNull(),    // Spurs Pay reference (how we reconcile)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("invoices_project_idx").on(t.projectId),
+    uniqueIndex("invoices_pay_reference_idx").on(t.payReference),
+  ],
+);
+
+/** User-scoped notifications shown in the console bell. */
+export const notifications = spurs.table(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body"),
+    href: text("href"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("notifications_user_idx").on(t.userId)],
+);
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type Invoice = typeof invoices.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type StorageBucket = typeof storageBuckets.$inferSelect;

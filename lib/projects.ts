@@ -25,6 +25,12 @@ export async function getProject(userId: string, id: string): Promise<Project | 
   return p;
 }
 
+/** No ownership check — for trusted internal/service access only. */
+export async function getProjectById(id: string): Promise<Project | null> {
+  const [p] = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  return p ?? null;
+}
+
 export async function createProject(
   userId: string,
   name: string,

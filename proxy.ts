@@ -6,8 +6,15 @@ import { SESSION_COOKIE, verifySession } from "@/lib/auth/session";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Public paths: login, SSO handlers, and the API-key-authenticated public API.
-  if (pathname === "/login" || pathname.startsWith("/auth/") || pathname.startsWith("/api/v1/")) {
+  // Non-session paths: login, SSO handlers, the public API (API-key auth) and
+  // the private service API (shared-secret auth).
+  if (
+    pathname === "/login" ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/docs") ||
+    pathname.startsWith("/api/v1/") ||
+    pathname.startsWith("/api/private/")
+  ) {
     return NextResponse.next();
   }
 

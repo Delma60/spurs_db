@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Session } from "@/lib/auth/session";
 import UserMenu from "./UserMenu";
+import NotificationBell from "./NotificationBell";
 
 export default function TopNav({
   user,
@@ -21,7 +22,16 @@ export default function TopNav({
           </Link>
           {left}
         </div>
-        <UserMenu name={user.name} email={user.email} />
+        <div className="flex items-center gap-1">
+          <Link
+            href="/docs"
+            className="mr-1 hidden rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200 sm:block"
+          >
+            Docs
+          </Link>
+          <NotificationBell />
+          <UserMenu name={user.name} email={user.email} />
+        </div>
       </div>
     </header>
   );
