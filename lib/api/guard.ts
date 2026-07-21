@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getProject } from "@/lib/projects";
 import type { Project } from "@/lib/db";
-import type { Session } from "@/lib/auth/session";
+import type { Session } from "@/lib/auth";
 
 type Authorized = { session: Session; project: Project };
 type Denied = { error: NextResponse };

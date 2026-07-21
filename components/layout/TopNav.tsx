@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Session } from "@/lib/auth/session";
+import type { Session } from "@/lib/auth";
 import UserMenu from "./UserMenu";
 import NotificationBell from "./NotificationBell";
 
