@@ -12,6 +12,7 @@
     "@aws-sdk/client-s3": "^3.1090.0",
     "@aws-sdk/s3-request-presigner": "^3.1090.0",
     "@spurs-cloud/accounts": "github:Delma60/spurs-account-js-sdk",
+    "@spurs-cloud/pay": "github:Delma60/spurs-pay-js-sdk",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.3",
